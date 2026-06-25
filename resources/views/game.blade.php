@@ -279,6 +279,14 @@
             <p class="subtitle">Test your geography knowledge!</p>
             
             <div class="input-group">
+                <label for="difficulty">Mode:</label>
+                <select id="difficulty">
+                    <option value="easy" selected>Easy (Famous Flags)</option>
+                    <option value="hard">Hard (70% Obscure)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
                 <label for="rounds">Rounds:</label>
                 <select id="rounds">
                     <option value="5">5</option>
@@ -340,6 +348,16 @@
         let score = 0;
         let currentCorrectCode = '';
         
+        const famousCountries = [
+            "us", "gb", "fr", "de", "it", "es", "in", "cn", "jp", "br", 
+            "ca", "au", "ru", "za", "mx", "ar", "kr", "nl", "se", "ch", 
+            "nz", "tr", "sa", "eg", "ng", "ke", "pk", "id", "th", "vn", 
+            "my", "ph", "co", "pe", "cl", "ve", "gr", "pt", "pl", "ua", 
+            "at", "be", "dk", "no", "fi", "ie", "il", "ae", "sg", "bd",
+            "lk", "np", "dz", "ma", "iq", "ir", "sy", "kw", "qa", "bh",
+            "om", "ye", "jo", "lb", "cu", "jm", "ht", "do", "pr", "cr"
+        ];
+        
         // DOM Elements
         const screens = {
             start: document.getElementById('start-screen'),
@@ -396,12 +414,32 @@
         // Game Logic
         function startGame() {
             maxRounds = parseInt(ui.roundsSelect.value);
+            const mode = document.getElementById('difficulty').value;
             currentRound = 1;
             score = 0;
             
-            // Generate a random pool of unique correct flags for the entire game
-            const shuffledCodes = [...countryCodes].sort(() => 0.5 - Math.random());
-            gameCodes = shuffledCodes.slice(0, maxRounds);
+            let pool = [];
+            const availableFamous = famousCountries.filter(c => countryCodes.includes(c));
+            
+            if (mode === 'easy') {
+                const shuffled = [...availableFamous].sort(() => 0.5 - Math.random());
+                pool = shuffled;
+            } else {
+                const availableNonFamous = countryCodes.filter(c => !famousCountries.includes(c));
+                
+                const shuffledFamous = [...availableFamous].sort(() => 0.5 - Math.random());
+                const shuffledNonFamous = [...availableNonFamous].sort(() => 0.5 - Math.random());
+                
+                const famousCount = Math.round(maxRounds * 0.3); // 30% famous
+                const nonFamousCount = maxRounds - famousCount;  // 70% non-famous
+                
+                pool = [
+                    ...shuffledFamous.slice(0, famousCount),
+                    ...shuffledNonFamous.slice(0, nonFamousCount)
+                ].sort(() => 0.5 - Math.random());
+            }
+            
+            gameCodes = pool.slice(0, maxRounds);
             
             showScreen('game');
             nextRound();
